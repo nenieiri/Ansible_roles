@@ -13,13 +13,19 @@
 
 - name: Config Nginx - upload my config file
   copy:
-    src: default
+    src: my_config
     dest: /etc/nginx/sites-available
 
-- name: Config Nginx - creat /var/www/mysite folder
+- name: Config Nginx - symbolic link to my nginx config file
+  file:
+    state: link
+    src: "/etc/nginx/sites-available/my_config"
+    path: "/etc/nginx/sites-enabled/default"
+
+- name: Config Nginx - creat /var/www/site_name folder
   command:
-    cmd: 'mkdir /var/www/mysite'
-    creates: '/var/www/mysite'
+    cmd: "mkdir {{ site_name }}"
+    creates: "{{ site_name }}"
 
 - name: Config Nginx - Delete nginx default page
   command:
