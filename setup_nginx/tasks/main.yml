@@ -1,0 +1,32 @@
+---
+# tasks file for setup_nginx
+- name: Install Nginx and php
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'nginx'
+    - 'php'
+    - 'php-fpm'
+    - 'php-mysql'
+
+- name: Config Nginx - upload my config file
+  copy:
+    src: default
+    dest: /etc/nginx/sites-available
+
+- name: Config Nginx - creat /var/www/mysite folder
+  command:
+    cmd: 'mkdir /var/www/mysite'
+    creates: '/var/www/mysite'
+
+- name: Config Nginx - Delete nginx default page
+  command:
+    cmd: 'rm -rf /var/www/html'
+
+- name: Config Nginx - Start service
+  service:
+    name: nginx
+    state: started
+    enabled: yes
