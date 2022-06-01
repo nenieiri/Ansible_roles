@@ -2,28 +2,23 @@
 # tasks file for setup_wordpress
 - name: Dowload and unpack latest WordPress
   unarchive:
-    src: https://wordpress.org/latest.tar.gz
+    src: "{{ download_path }}"
     remote_src: yes
-    dest: "/var/www/mysite"
-    creates: "/var/www/mysite/wordpress"
+    dest: "{{ site_name }}"
+    creates: "{{ site_name_wp }}"
 
 - name: Config WordPress - Rename wp-config-sample.php to wp-config.php
   command:
-    cmd: mv "/var/www/mysite/wordpress/wp-config-sample.php" "/var/www/mysite/wordpress/wp-config.php"
-    creates: "/var/www/mysite/wordpress/wp-config.php"
+    cmd: mv "{{ site_name_wp }}/wp-config-sample.php" "{{ site_name_wp }}/wp-config.php"
+    creates: "{{ site_name_wp }}/wp-config.php"
 
 - name: Config WordPress - Update WordPress config file
   lineinfile:
-    path: "/var/www/mysite/wordpress/wp-config.php"
+    path: "{{ site_name_wp }}/wp-config.php"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - {'regexp': "define\\( 'DB_NAME', '(.)+' \\);", 'line': "define( 'DB_NAME', 'mydb' );"}
-    - {'regexp': "define\\( 'DB_USER', '(.)+' \\);", 'line': "define( 'DB_USER', 'admin' );"}
-    - {'regexp': "define\\( 'DB_PASSWORD', '(.)+' \\);", 'line': "define( 'DB_PASSWORD', 'admin' );"}
-
-- name: Config Nginx - Start service
-  service:
-    name: nginx
-    state: restarted
-    enabled: yes
+    - {'regexp': "define\\( 'DB_NAME', '(.)+' \\);", 'line': "define( 'DB_NAME', '{{ wp_db_name }}' );"}
+    - {'regexp': "define\\( 'DB_USER', '(.)+' \\);", 'line': "define( 'DB_USER', '{{ wp_db_user }}' );"}
+    - {'regexp': "define\\( 'DB_PASSWORD', '(.)+' \\);", 'line': "define( 'DB_PASSWORD', '{{ wp_db_pass }}' );"}
+  notify: Config Nginx - Start service

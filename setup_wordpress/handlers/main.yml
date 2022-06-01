@@ -1,2 +1,7 @@
 ---
 # handlers file for setup_wordpress
+- name: Config Nginx - Start service
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
