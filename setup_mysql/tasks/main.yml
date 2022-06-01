@@ -6,9 +6,14 @@
     state: latest
   with_items:
     - 'mysql-server'
-    - 'python3-mysqldb'
+    - 'mysql-client'
     - 'python3-pymysql'
-  notify: config mysql - set MySQL root password
+
+- name: config mysql - set MySQL root password
+  mysql_user:
+    name: "root"
+    password: "{{ db_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
 
 - name: Config MySQL - Start MySQL service
   service:
@@ -25,8 +30,8 @@
 
 - name: config mysql - creates user for wordpress
   mysql_user:
-    name: 'wp_db_user'
-    password: 'wp_db_pass'
+    name: '{{ wp_db_user }}'
+    password: '{{ wp_db_pass }}'
     login_user: 'root'
     login_password: "{{ db_pass }}"
     priv: "*.*:ALL"
