@@ -3,5 +3,5 @@
 - name: config mysql - set MySQL root password
   mysql_user:
     name: "root"
-    password: 'root'
+    password: 'db_pass'
     login_unix_socket: /var/run/mysqld/mysqld.sock

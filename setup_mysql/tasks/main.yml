@@ -6,10 +6,8 @@
     state: latest
   with_items:
     - 'mysql-server'
-    - 'mysql-client'
     - 'python3-mysqldb'
     - 'python3-pymysql'
-    - 'libmysqlclient-dev'
   notify: config mysql - set MySQL root password
 
 - name: Config MySQL - Start MySQL service
@@ -20,15 +18,15 @@
 
 - name: Config MySQL - Creates database for WordPress
   mysql_db:
-    name: 'mydb'
+    name: "{{ wp_db_name }}"
     state: 'present'
     login_user: 'root'
-    login_password: 'root'
+    login_password: "{{ db_pass }}"
 
 - name: config mysql - creates user for wordpress
   mysql_user:
-    name: 'admin'
-    password: 'admin'
+    name: 'wp_db_user'
+    password: 'wp_db_pass'
     login_user: 'root'
-    login_password: 'root'
+    login_password: "{{ db_pass }}"
     priv: "*.*:ALL"

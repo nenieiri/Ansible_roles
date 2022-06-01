@@ -1,2 +1,6 @@
 ---
 # defaults file for setup_mysql
+db_pass     : "root"
+wp_db_name  : "mydb"
+wp_db_user  : "root"
+wp_db_pass  : "root"
