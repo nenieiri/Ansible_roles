@@ -1,0 +1,104 @@
+---
+- name: name playbook
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install MySQL
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - 'mysql-server'
+        - 'mysql-client'
+        - 'python3-mysqldb'
+        - 'python3-pymysql'
+        - 'libmysqlclient-dev'
+      notify: config mysql - set MySQL root password
+
+    - name: Config MySQL - Start MySQL service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Config MySQL - Creates database for WordPress
+      mysql_db:
+        name: 'mydb'
+        state: 'present'
+        login_user: 'root'
+        login_password: 'root'
+
+    - name: config mysql - creates user for wordpress
+      mysql_user:
+        name: 'admin'
+        password: 'admin'
+        login_user: 'root'
+        login_password: 'root'
+        priv: "*.*:ALL"
+
+    - name: Install Nginx and php
+      apt:
+        update_cache: yes
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - 'nginx'
+        - 'php'
+        - 'php-fpm'
+        - 'php-mysql'
+
+    - name: Config Nginx - upload my config file
+      copy:
+        src: ./default
+        dest: /etc/nginx/sites-available
+
+    - name: Config Nginx - creat /var/www/mysite folder
+      command:
+        cmd: 'mkdir /var/www/mysite'
+        creates: '/var/www/mysite'
+
+    - name: Config Nginx - Delete nginx default page
+      command:
+        cmd: 'rm -rf /var/www/html'
+
+    - name: Config Nginx - Start service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Dowload and unpack latest WordPress
+      unarchive:
+        src: https://wordpress.org/latest.tar.gz
+        remote_src: yes
+        dest: "/var/www/mysite"
+        creates: "/var/www/mysite/wordpress"
+
+    - name: Config WordPress - Rename wp-config-sample.php to wp-config.php
+      command:
+        cmd: mv "/var/www/mysite/wordpress/wp-config-sample.php" "/var/www/mysite/wordpress/wp-config.php"
+        creates: "/var/www/mysite/wordpress/wp-config.php"
+
+    - name: Config WordPress - Update WordPress config file
+      lineinfile:
+        path: "/var/www/mysite/wordpress/wp-config.php"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - {'regexp': "define\\( 'DB_NAME', '(.)+' \\);", 'line': "define( 'DB_NAME', 'mydb' );"}
+        - {'regexp': "define\\( 'DB_USER', '(.)+' \\);", 'line': "define( 'DB_USER', 'admin' );"}
+        - {'regexp': "define\\( 'DB_PASSWORD', '(.)+' \\);", 'line': "define( 'DB_PASSWORD', 'admin' );"}
+
+    - name: Config Nginx - Start service
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+  handlers:
+    - name: config mysql - set MySQL root password
+      mysql_user:
+        name: "root"
+        password: 'root'
+        login_unix_socket: /var/run/mysqld/mysqld.sock
