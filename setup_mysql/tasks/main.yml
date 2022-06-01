@@ -1,2 +1,34 @@
 ---
 # tasks file for setup_mysql
+- name: Install MySQL
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'mysql-server'
+    - 'mysql-client'
+    - 'python3-mysqldb'
+    - 'python3-pymysql'
+    - 'libmysqlclient-dev'
+  notify: config mysql - set MySQL root password
+
+- name: Config MySQL - Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Config MySQL - Creates database for WordPress
+  mysql_db:
+    name: 'mydb'
+    state: 'present'
+    login_user: 'root'
+    login_password: 'root'
+
+- name: config mysql - creates user for wordpress
+  mysql_user:
+    name: 'admin'
+    password: 'admin'
+    login_user: 'root'
+    login_password: 'root'
+    priv: "*.*:ALL"
